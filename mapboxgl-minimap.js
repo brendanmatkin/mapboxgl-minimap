@@ -1,56 +1,59 @@
-function Minimap ( options )
-{
-	Object.assign(this.options, options);
+import mapboxgl from 'mapbox-gl';
 
-	this._ticking = false;
-	this._lastMouseMoveEvent = null;
-	this._parentMap = null;
-	this._isDragging = false;
-	this._isCursorOverFeature = false;
-	this._previousPoint = [0, 0];
-	this._currentPoint = [0, 0];
-	this._trackingRectCoordinates = [[[], [], [], [], []]];
-}
+let defaultOptions = {
+	id: "mapboxgl-minimap",
+	width: "320px",
+	height: "180px",
+	style: "mapbox://styles/mapbox/streets-v8",
+	center: [0, 0],
+	zoom: 6,
 
-Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
+	// should be a function; will be bound to Minimap
+	zoomAdjust: null,
 
-	options: {
-		id: "mapboxgl-minimap",
-		width: "320px",
-		height: "180px",
-		style: "mapbox://styles/mapbox/streets-v8",
-		center: [0, 0],
-		zoom: 6,
+	// if parent map zoom >= 18 and minimap zoom >= 14, set minimap zoom to 16
+	zoomLevels: [
+		[18, 14, 16],
+		[16, 12, 14],
+		[14, 10, 12],
+		[12, 8, 10],
+		[10, 6, 8]
+	],
 
-		// should be a function; will be bound to Minimap
-		zoomAdjust: null,
+	lineColor: "#08F",
+	lineWidth: 1,
+	lineOpacity: 1,
 
-		// if parent map zoom >= 18 and minimap zoom >= 14, set minimap zoom to 16
-		zoomLevels: [
-			[18, 14, 16],
-			[16, 12, 14],
-			[14, 10, 12],
-			[12, 8, 10],
-			[10, 6, 8]
-		],
+	fillColor: "#F80",
+	fillOpacity: 0.25,
 
-		lineColor: "#08F",
-		lineWidth: 1,
-		lineOpacity: 1,
+	dragPan: false,
+	scrollZoom: false,
+	boxZoom: false,
+	dragRotate: false,
+	keyboard: false,
+	doubleClickZoom: false,
+	touchZoomRotate: false
+};
 
-		fillColor: "#F80",
-		fillOpacity: 0.25,
+//class Minimap extends mapboxgl.NavigationControl {
+class Minimap {
+	constructor(_options){
+		// super();
+		this.options = defaultOptions;
+		Object.assign(this.options, _options);
+		
+		this._ticking = false;
+		this._lastMouseMoveEvent = null;
+		this._parentMap = null;
+		this._isDragging = false;
+		this._isCursorOverFeature = false;
+		this._previousPoint = [0, 0];
+		this._currentPoint = [0, 0];
+		this._trackingRectCoordinates = [[[], [], [], [], []]];
+	}
 
-		dragPan: false,
-		scrollZoom: false,
-		boxZoom: false,
-		dragRotate: false,
-		keyboard: false,
-		doubleClickZoom: false,
-		touchZoomRotate: false
-	},
-
-	onAdd: function ( parentMap )
+	onAdd ( parentMap )
 	{
 		this._parentMap = parentMap;
 
@@ -69,9 +72,9 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 		miniMap.on("load", this._load.bind(this));
 
 		return this._container;
-	},
+	}
 
-	_load: function ()
+	_load ()
 	{
 		var opts = this.options;
 		var parentMap = this._parentMap;
@@ -152,9 +155,9 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 		this._miniMapCanvas = miniMap.getCanvasContainer();
 		this._miniMapCanvas.addEventListener("wheel", this._preventDefault);
 		this._miniMapCanvas.addEventListener("mousewheel", this._preventDefault);
-	},
+	}
 
-	_mouseDown: function ( e )
+	_mouseDown( e )
 	{
 		if( this._isCursorOverFeature )
 		{
@@ -162,9 +165,9 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 			this._previousPoint = this._currentPoint;
 			this._currentPoint = [e.lngLat.lng, e.lngLat.lat];
 		}
-	},
+	}
 
-	_mouseMove: function (e)
+	_mouseMove (e)
 	{
 		this._ticking = false;
 
@@ -197,15 +200,15 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 				noMoveStart: true
 			});
 		}
-	},
+	}
 
-	_mouseUp: function ()
+	_mouseUp()
 	{
 		this._isDragging = false;
 		this._ticking = false;
-	},
+	}
 
-	_moveTrackingRect: function ( offset )
+	_moveTrackingRect( offset )
 	{
 		var source = this._trackingRect;
 		var data = source._data;
@@ -220,9 +223,9 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 		source.setData(data);
 
 		return bounds;
-	},
+	}
 
-	_setTrackingRectBounds: function ( bounds )
+	_setTrackingRectBounds( bounds )
 	{
 		var source = this._trackingRect;
 		var data = source._data;
@@ -230,9 +233,9 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 		data.properties.bounds = bounds;
 		this._convertBoundsToPoints(bounds);
 		source.setData(data);
-	},
+	}
 
-	_convertBoundsToPoints: function ( bounds )
+	_convertBoundsToPoints( bounds )
 	{
 		var ne = bounds._ne;
 		var sw = bounds._sw;
@@ -248,9 +251,9 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 		trc[0][3][1] = sw.lat;
 		trc[0][4][0] = ne.lng;
 		trc[0][4][1] = ne.lat;
-	},
+	}
 
-	_update: function ( e )
+	_update()
 	{
 		if( this._isDragging  ) {
 			return;
@@ -263,10 +266,10 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 		if( typeof this.options.zoomAdjust === "function" ) {
 			this.options.zoomAdjust();
 		}
-	},
+	}
 
-	_zoomAdjust: function ()
-	{
+	_zoomAdjust()
+	{	
 		var miniMap = this._miniMap;
 		var parentMap = this._parentMap;
 		var miniZoom = parseInt(miniMap.getZoom(), 10);
@@ -295,9 +298,9 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 
 			miniMap.setZoom(this.options.zoom)
 		}
-	},
+	}
 
-	_createContainer: function ( parentMap )
+	_createContainer ( parentMap )
 	{
 		var opts = this.options;
 		var container = document.createElement("div");
@@ -313,11 +316,11 @@ Minimap.prototype = Object.assign({}, mapboxgl.NavigationControl.prototype, {
 		}
 
 		return container;
-	},
+	}
 
-	_preventDefault: function ( e ) {
+	_preventDefault( e ) {
 		e.preventDefault();
 	}
-});
+}
 
-mapboxgl.Minimap = Minimap;
+export default Minimap;
