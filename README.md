@@ -1,13 +1,16 @@
 # Mapbox GL Minimap Control
-
-## Demo
-[Demo on GitHub pages](http://aesqe.github.io/mapboxgl-minimap/)
+ES6 Module fork of [original by aesqe](https://github.com/aesqe/mapboxgl-minimap)
 
 **--- work in progress; overall performance can probably be improved ---**
 
 ## How to use it
 
+`npm install mapbox-gl`
+
 ```javascript
+import mapboxgl from "mapbox-gl"
+import MiniMap from "mapboxgl-minimap/mapboxgl-minimap.js"
+
 var map = new mapboxgl.Map({
   container: "map",
   style: "mapbox://styles/mapbox/streets-v8",
@@ -17,8 +20,32 @@ var map = new mapboxgl.Map({
 
 map.on("style.load", function () {
   // Possible position values are 'bottom-left', 'bottom-right', 'top-left', 'top-right'
-  map.addControl(new mapboxgl.Minimap(), 'top-right');
+  map.addControl(new Minimap(), 'top-right');
 });
+```
+
+## With Vue
+
+Using [mapbox-gl-vue](https://www.npmjs.com/package/mapbox-gl-vue)  
+(This is in a single file component, with mapboxgl-minimap in [project root]/src/utils folder)
+
+```javascript
+import mapboxgl from "mapbox-gl"
+import Mapbox from "mapbox-gl-vue"
+import MiniMap from "@/utils/mapboxgl-minimap/mapboxgl-minimap.js"
+
+export default {
+  components: { Mapbox },
+  methods: {
+    mapLoaded(map) {
+      _map.addControl(new MiniMap({
+        center: [-110.7155,55.6665],
+        zoom: 10,
+        zoomLevels:[],  // disable adaptive zoom
+      }), 'bottom-right');
+    }
+  }
+}
 ```
 
 ## Options
